@@ -1125,7 +1125,7 @@ sub init {
 
 sub get_date {
 	my %datestamp;
-	($datestamp{'sec'},$datestamp{'min'},$datestamp{'hour'},$datestamp{'mday'},$datestamp{'mon'},$datestamp{'year'},$datestamp{'wday'},$datestamp{'yday'},$datestamp{'isdst'}) = localtime(time);
+	($datestamp{'sec'},$datestamp{'min'},$datestamp{'hour'},$datestamp{'mday'},$datestamp{'mon'},$datestamp{'year'},$datestamp{'wday'},$datestamp{'yday'},$datestamp{'isdst'}) = gmtime(time);
 	$datestamp{'year'} += 1900;
 	$datestamp{'unix_time'} = (((((((($datestamp{'year'} - 1971) * 365) + $datestamp{'yday'}) * 24) + $datestamp{'hour'}) * 60) + $datestamp{'min'}) * 60) + $datestamp{'sec'};
 	$datestamp{'sec'} = sprintf ("%02u", $datestamp{'sec'});
@@ -1135,8 +1135,8 @@ sub get_date {
 	$datestamp{'mon'} = sprintf ("%02u", ($datestamp{'mon'} + 1));
 	$datestamp{'noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}_$datestamp{'hour'}:$datestamp{'min'}";
 	$datestamp{'sortable'} = "$datestamp{'noseconds'}:$datestamp{'sec'}";
-	$datestamp{'sortable_iso8601_extended'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}:$datestamp{'sec'}";
-	$datestamp{'sortable_iso8601_basic'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}$datestamp{'sec'}";
+	$datestamp{'sortable_iso8601_extended'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}:$datestamp{'sec'}Z";
+	$datestamp{'sortable_iso8601_basic'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}$datestamp{'sec'}Z";
 	return %datestamp;
 }
 
