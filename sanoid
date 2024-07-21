@@ -1135,10 +1135,12 @@ sub get_date {
 	$datestamp{'hour'} = sprintf ("%02u", $datestamp{'hour'});
 	$datestamp{'mday'} = sprintf ("%02u", $datestamp{'mday'});
 	$datestamp{'mon'} = sprintf ("%02u", ($datestamp{'mon'} + 1));
-	$datestamp{'sortable_noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}_$datestamp{'hour'}:$datestamp{'min'}";
-	$datestamp{'sortable_default'} = "$datestamp{'sortable_noseconds'}:$datestamp{'sec'}";
+	$datestamp{'sortable_default_noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}_$datestamp{'hour'}:$datestamp{'min'}";
+	$datestamp{'sortable_default'} = "$datestamp{'sortable_default_noseconds'}:$datestamp{'sec'}";
 	$datestamp{'sortable_iso8601_extended'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}:$datestamp{'sec'}Z";
+	$datestamp{'sortable_iso8601_extended_noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}Z";
 	$datestamp{'sortable_iso8601_basic'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}$datestamp{'sec'}Z";
+	$datestamp{'sortable_iso8601_basic_noseconds'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}Z";
 	return %datestamp;
 }
 
@@ -1151,6 +1153,12 @@ sub get_snapshot_name {
 	$snapshotNameFormat = $snapshotNameFormat || 'default';
 	my %datestamp = %{$datestamp_ref};
 	$snapshotNameFormat = 'sortable_' . $snapshotNameFormat;
+	# Check if the snapshot name format is valid
+	if (!exists $datestamp{$snapshotNameFormat}) {
+		warn "WARN: invalid snapshot name format '$snapshotNameFormat'.\n";
+		# Exit with error code 3 (UNKNOWN) if the snapshot name format is invalid
+		exit 3;
+	}
 	return "autosnap_$datestamp{$snapshotNameFormat}_$type";
 }
 
