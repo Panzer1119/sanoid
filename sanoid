@@ -581,7 +581,8 @@ sub take_snapshots {
 							'recursive' => $config{$section}{'zfs_recursion'},
 							'handleDst' => $handleDst,
 							'datasets' => [$path], # for later atomic grouping, currently only a one element array
-							'types' => []
+							'types' => [],
+							'snapshotNameFormat' => $config{$section}{'snapshot_name_format'},
 						};
 					}
 
@@ -599,13 +600,14 @@ sub take_snapshots {
 			my @datasets = @{$snapData->{datasets}};
 			my $dataset = $datasets[0];
 			my @types = @{$snapData->{types}};
+			my $snapshotNameFormat = $snapData->{snapshotNameFormat};
 
 			# same timestamp for all snapshots types (daily, hourly, ...)
 			my %datestamp = get_date();
 			my @snapshots;
 
 			foreach my $type (@types) {
-				my $snapname = "autosnap_$datestamp{'sortable'}_$type";
+				my $snapname = get_snapshot_name(\%datestamp, $snapshotNameFormat, $type);
 				push(@snapshots, $snapname);
 			}
 
@@ -1125,7 +1127,7 @@ sub init {
 
 sub get_date {
 	my %datestamp;
-	($datestamp{'sec'},$datestamp{'min'},$datestamp{'hour'},$datestamp{'mday'},$datestamp{'mon'},$datestamp{'year'},$datestamp{'wday'},$datestamp{'yday'},$datestamp{'isdst'}) = localtime(time);
+	($datestamp{'sec'},$datestamp{'min'},$datestamp{'hour'},$datestamp{'mday'},$datestamp{'mon'},$datestamp{'year'},$datestamp{'wday'},$datestamp{'yday'},$datestamp{'isdst'}) = gmtime(time);
 	$datestamp{'year'} += 1900;
 	$datestamp{'unix_time'} = (((((((($datestamp{'year'} - 1971) * 365) + $datestamp{'yday'}) * 24) + $datestamp{'hour'}) * 60) + $datestamp{'min'}) * 60) + $datestamp{'sec'};
 	$datestamp{'sec'} = sprintf ("%02u", $datestamp{'sec'});
@@ -1133,9 +1135,31 @@ sub get_date {
 	$datestamp{'hour'} = sprintf ("%02u", $datestamp{'hour'});
 	$datestamp{'mday'} = sprintf ("%02u", $datestamp{'mday'});
 	$datestamp{'mon'} = sprintf ("%02u", ($datestamp{'mon'} + 1));
-	$datestamp{'noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}_$datestamp{'hour'}:$datestamp{'min'}";
-	$datestamp{'sortable'} = "$datestamp{'noseconds'}:$datestamp{'sec'}";
+	$datestamp{'sortable_default_noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}_$datestamp{'hour'}:$datestamp{'min'}";
+	$datestamp{'sortable_default'} = "$datestamp{'sortable_default_noseconds'}:$datestamp{'sec'}";
+	$datestamp{'sortable_iso8601_extended'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}:$datestamp{'sec'}Z";
+	$datestamp{'sortable_iso8601_extended_noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}Z";
+	$datestamp{'sortable_iso8601_basic'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}$datestamp{'sec'}Z";
+	$datestamp{'sortable_iso8601_basic_noseconds'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}Z";
 	return %datestamp;
+}
+
+####################################################################################
+####################################################################################
+####################################################################################
+
+sub get_snapshot_name {
+	my ($datestamp_ref, $snapshotNameFormat, $type) = @_;
+	$snapshotNameFormat = $snapshotNameFormat || 'default';
+	my %datestamp = %{$datestamp_ref};
+	$snapshotNameFormat = 'sortable_' . $snapshotNameFormat;
+	# Check if the snapshot name format is valid
+	if (!exists $datestamp{$snapshotNameFormat}) {
+		warn "WARN: invalid snapshot name format '$snapshotNameFormat'.\n";
+		# Exit with error code 3 (UNKNOWN) if the snapshot name format is invalid
+		exit 3;
+	}
+	return "autosnap_$datestamp{$snapshotNameFormat}_$type";
 }
 
 ####################################################################################
