@@ -1135,6 +1135,8 @@ sub get_date {
 	$datestamp{'mon'} = sprintf ("%02u", ($datestamp{'mon'} + 1));
 	$datestamp{'noseconds'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}_$datestamp{'hour'}:$datestamp{'min'}";
 	$datestamp{'sortable'} = "$datestamp{'noseconds'}:$datestamp{'sec'}";
+	$datestamp{'sortable_iso8601_extended'} = "$datestamp{'year'}-$datestamp{'mon'}-$datestamp{'mday'}T$datestamp{'hour'}:$datestamp{'min'}:$datestamp{'sec'}";
+	$datestamp{'sortable_iso8601_basic'} = "$datestamp{'year'}$datestamp{'mon'}$datestamp{'mday'}T$datestamp{'hour'}$datestamp{'min'}$datestamp{'sec'}";
 	return %datestamp;
 }
 
