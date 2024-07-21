@@ -27,7 +27,7 @@ GetOptions(\%args, "no-command-checks", "monitor-version", "compress=s", "dumpsn
                    "no-clone-handling", "no-privilege-elevation", "force-delete", "no-rollback", "create-bookmark", "use-hold",
                    "pv-options=s" => \$pvoptions, "keep-sync-snap", "preserve-recordsize", "mbuffer-size=s" => \$mbuffer_size,
                    "delete-target-snapshots", "insecure-direct-connection=s", "preserve-properties",
-                   "include-snaps=s@", "exclude-snaps=s@", "exclude-datasets=s@", "ignore-encryption")
+                   "include-snaps=s@", "exclude-snaps=s@", "exclude-datasets=s@", "ignore-encryption", "no-deduplication")
                    or pod2usage(2);
 
 my %compressargs = %{compressargset($args{'compress'} || 'default')}; # Can't be done with GetOptions arg, as default still needs to be set
@@ -924,6 +924,13 @@ sub runsynccmd {
 					next;
 				}
 			}
+            # if the key is dedup and no-deduplication is set, skip it
+			if ($key eq 'dedup') {
+				if (defined $args{'no-deduplication'}) {
+					writelog('DEBUG', "will drop existing $key ...");
+					next;
+				}
+			}
 			my $value = $properties{$key};
 			writelog('DEBUG', "will set $key to $value ...");
 			my $pair = escapeshellparam("$key=$value");
@@ -932,6 +939,10 @@ sub runsynccmd {
 		# if ignore-encryption is set, add encryption, keyformat, keylocation or pbkdf2iters to the receive options, but with the -x flag
 		if (defined $args{'ignore-encryption'}) {
 			$recvoptions .= " -x encryption -x keyformat -x keylocation -x pbkdf2iters";
+		}
+		# if no-deduplication is set, add dedup to the receive options as off
+		if (defined $args{'no-deduplication'}) {
+			$recvoptions .= " -o dedup=off";
 		}
 	} elsif (defined $args{'preserve-recordsize'}) {
 		my $type = getzfsvalue($sourcehost,$sourcefs,$sourceisroot,'type');
@@ -2361,6 +2372,7 @@ Options:
   --sshoption|o=OPTION  Passes OPTION to ssh for remote usage. Can be specified multiple times
   --insecure-direct-connection=IP:PORT[,IP:PORT]  WARNING: DATA IS NOT ENCRYPTED. First address pair is for connecting to the target and the second for listening at the target
   --ignore-encryption   Drop encryption properties on the receiving side. This is useful to re-encrypt the data on the target with a different key
+  --no-deduplication    Set the deduplication property to off on the target
 
   --help                Prints this helptext
   --version             Prints the version number
