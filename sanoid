@@ -602,11 +602,18 @@ sub take_snapshots {
 			my @types = @{$snapData->{types}};
 			my $snapshotNameFormat = $snapData->{snapshotNameFormat};
 
-			# same timestamp for all snapshots types (daily, hourly, ...)
-			my %datestamp = get_date();
+			# different timestamp for each snapshot type (daily, hourly, ...)
+			my %datestampByType;
+			foreach my $type (@types) {
+				my %datestamp = get_date();
+				$datestampByType{$type} = \%datestamp;
+				# sleep 1.2 seconds to avoid snapshot name collision
+				select(undef, undef, undef, 1.2);
+			}
 			my @snapshots;
 
 			foreach my $type (@types) {
+				my %datestamp = %{$datestampByType{$type}};
 				my $snapname = get_snapshot_name(\%datestamp, $snapshotNameFormat, $type);
 				push(@snapshots, $snapname);
 			}
