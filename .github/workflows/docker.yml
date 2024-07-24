@@ -1,0 +1,40 @@
+name: Build and Publish Debian Package
+
+on:
+  push:
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - v*
+
+jobs:
+  # See also https://docs.docker.com/docker-hub/builds/
+  push:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --label "runnumber=${GITHUB_RUN_ID}"
+
+      - name: Create output directory
+        run: mkdir -p "${{ github.workspace }}/output"
+
+      - name: Build Debian package inside Docker
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workdir/sanoid" \
+            repo-builder
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-package
+          path: "${{ github.workspace }}/output/sanoid_*_all.deb"
