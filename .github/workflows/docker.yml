@@ -24,7 +24,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: docker build . --file Dockerfile --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag builder --label "runnumber=${GITHUB_RUN_ID}"
 
       - name: Create output directory
         run: mkdir -p "${{ github.workspace }}/output"
@@ -33,7 +33,7 @@ jobs:
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/workdir/sanoid" \
-            repo-builder
+            builder
 
       - name: Upload Debian package
         uses: actions/upload-artifact@v4
