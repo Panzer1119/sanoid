@@ -19,8 +19,7 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory
 WORKDIR /workdir/sanoid
 
-# Create a symbolic link to the debian package directory
-RUN ln -s packages/debian .
-
-# Build the Debian package and move it to the output directory
-CMD dpkg-buildpackage -uc -us && mv ../sanoid_*_all.deb /workdir/sanoid/output/
+# Create a symbolic link to the debian package directory and Build the Debian package and move it to the output directory
+CMD ln -s /workdir/sanoid/packages/debian /workdir/sanoid \
+  && dpkg-buildpackage -uc -us \
+  && mv ../sanoid_*_all.deb /workdir/sanoid/output/
