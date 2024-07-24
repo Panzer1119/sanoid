@@ -40,3 +40,9 @@ jobs:
         with:
           name: debian-package
           path: "${{ github.workspace }}/output/sanoid_*_all.deb"
+      
+      - name: Release (if tag)
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: "${{ github.workspace }}/output/sanoid_*_all.deb"
