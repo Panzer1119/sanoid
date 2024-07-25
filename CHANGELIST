@@ -1,3 +1,5 @@
+2.3.2  [overall]   improved syncoid and sanoid
+
 2.2.0  [overall]   documentation updates, small fixes (@azmodude, @deviantintegral, @jimsalterjrs, @alexhaydock, @cbreak-black, @kd8bny, @JavaScriptDude, @veeableful, @rsheasby, @Topslakr, @mavhc, @adam-stamand, @joelishness, @jsoref, @dodexahedron, @phreaker0)
        [syncoid]   implemented flag for preserving properties without the zfs -p flag (@phreaker0)
        [syncoid]   implemented target snapshot deletion (@mat813)
